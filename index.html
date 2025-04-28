@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>وصل التحضير</title>
+  <style>
+    body {
+      width: 72mm;
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      font-size: 13px;
+    }
+    .receipt {
+      padding: 5px;
+      text-align: center;
+    }
+    h2 {
+      margin: 5px 0;
+      font-size: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 13px;
+      direction: rtl;
+    }
+    th, td {
+      border: 1px solid black;
+      padding: 4px;
+    }
+    th {
+      background: #f2f2f2;
+    }
+    .quantity-column {
+      width: 20%;
+    }
+    .product-column {
+      width: 80%;
+    }
+    .qrcodes {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .qrcode-section {
+      text-align: center;
+    }
+    .qrcode-section img {
+      width: 60px;  /* زيادة حجم الرموز من 40px إلى 60px */
+      height: 60px; /* زيادة حجم الرموز من 40px إلى 60px */
+    }
+    .footer {
+      margin-top: 5px;
+      font-size: 12px;
+    }
+    .separator {
+      border-top: 1px dashed black;
+      margin: 10px 0;
+    }
+    .info {
+      text-align: right;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+    .info p {
+      margin: 3px 0;
+    }
+    input {
+      border: none;
+      border-bottom: 1px solid #000;
+      font-size: 13px;
+      width: 100%;
+      padding: 2px;
+      text-align: right;
+      box-sizing: border-box;
+    }
+    .product-input {
+      width: 100%;
+      border: none;
+      font-size: 13px;
+      padding: 2px;
+      text-align: right;
+    }
+    .quantity-input {
+      width: 100%;
+      border: none;
+      font-size: 13px;
+      padding: 2px;
+      text-align: center;
+    }
+    .action-buttons {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-around;
+    }
+    .action-buttons button {
+      padding: 5px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    #locationInput {
+      margin-top: 5px;
+    }
+    .add-product-btn {
+      margin: 5px 0;
+      padding: 3px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="receipt">
+  <h2>وصل التحضير</h2>
+
+  <div class="info">
+    <p><strong>الاسم:</strong> <input type="text" id="nameInput" placeholder="ادخل الاسم"></p>
+    <p><strong>الهاتف:</strong> <input type="text" id="phoneInput" placeholder="ادخل رقم الهاتف"></p>
+    <p><strong>المنطقة:</strong> <input type="text" id="areaInput" placeholder="ادخل المنطقة"></p>
+    <p><strong>وقت التوصيل:</strong> <input type="text" id="timeInput" placeholder="ادخل وقت التوصيل"></p>
+    <p><strong>اللوكيشن:</strong> <input type="text" id="locationInput" placeholder="رابط اللوكيشن"></p>
+  </div>
+
+  <div class="separator"></div>
+
+  <table>
+    <thead>
+      <tr>
+        <th class="product-column">اسم المنتج</th>
+        <th class="quantity-column">الكمية</th>
+      </tr>
+    </thead>
+    <tbody id="orderItems">
+      <!-- سيتم إضافة صف واحد افتراضي هنا -->
+    </tbody>
+  </table>
+
+  <button id="addProductBtn" class="add-product-btn no-print">+ إضافة منتج جديد</button>
+
+  <div class="qrcodes">
+    <div class="qrcode-section">
+      <p>لوكيشن</p>
+      <img id="locationQR" src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=https://maps.google.com" alt="لوكيشن">
+    </div>
+    <div class="qrcode-section">
+      <p>رقم هاتف</p>
+      <img id="phoneQR" src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=tel:" alt="رقم الهاتف">
+    </div>
+  </div>
+
+  <div class="footer">
+    <p id="dateTime">تاريخ الوصول: 2025/04/28 - 02:34 صباحًا</p>
+  </div>
+
+  <div class="action-buttons no-print">
+    <button id="copyBtn">نسخ البيانات</button>
+    <button id="printBtn">طباعة الوصل</button>
+  </div>
+
+</div>
+
+<script>
+  // إضافة منتج جديد إلى الجدول
+  function addProductRow() {
+    const tbody = document.getElementById('orderItems');
+    const newRow = document.createElement('tr');
+    
+    newRow.innerHTML = `
+      <td><input class="product-input" type="text" placeholder="اسم المنتج"></td>
+      <td><input class="quantity-input" type="text" placeholder="الكمية"></td>
+    `;
+    
+    tbody.appendChild(newRow);
+  }
+  
+  // تحديث QR code عند تغيير القيم
+  document.getElementById('phoneInput').addEventListener('input', updateQRs);
+  document.getElementById('locationInput').addEventListener('input', updateQRs);
+  
+  function updateQRs() {
+    const phone = document.getElementById('phoneInput').value;
+    const location = document.getElementById('locationInput').value;
+    
+    if (phone) {
+      document.getElementById('phoneQR').src = 
+        `https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=tel:${phone}`;
+    }
+    
+    if (location) {
+      document.getElementById('locationQR').src = 
+        `https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent(location)}`;
+    }
+  }
+  
+  // تحديث التاريخ والوقت
+  function updateDateTime() {
+    const now = new Date();
+    const options = { 
+      year: 'numeric', 
+      month: '2-digit', 
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    };
+    const formatter = new Intl.DateTimeFormat('ar-EG', options);
+    const parts = formatter.formatToParts(now);
+    
+    let formattedDate = '';
+    for (const part of parts) {
+      if (part.type === 'day') formattedDate += part.value + '/';
+      if (part.type === 'month') formattedDate += part.value + '/';
+      if (part.type === 'year') formattedDate += part.value;
+      if (part.type === 'hour') formattedDate += ' - ' + part.value + ':';
+      if (part.type === 'minute') formattedDate += part.value;
+      if (part.type === 'dayPeriod') formattedDate += ' ' + (part.value === 'AM' ? 'صباحًا' : 'مساءً');
+    }
+    
+    document.getElementById('dateTime').textContent = `تاريخ الوصول: ${formattedDate}`;
+  }
+  
+  // زر النسخ
+  document.getElementById('copyBtn').addEventListener('click', function() {
+    const receiptContent = document.querySelector('.receipt').innerText;
+    navigator.clipboard.writeText(receiptContent).then(() => {
+      alert('تم نسخ البيانات بنجاح!');
+    }).catch(err => {
+      console.error('Failed to copy: ', err);
+    });
+  });
+  
+  // زر الطباعة
+  document.getElementById('printBtn').addEventListener('click', function() {
+    window.print();
+  });
+  
+  // زر إضافة منتج جديد
+  document.getElementById('addProductBtn').addEventListener('click', addProductRow);
+  
+  // إضافة صف واحد فقط عند تحميل الصفحة
+  window.addEventListener('DOMContentLoaded', () => {
+    addProductRow(); // صف واحد فقط عند البدء
+    updateDateTime();
+  });
+</script>
+
+</body>
+</html>
