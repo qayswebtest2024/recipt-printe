@@ -4,8 +4,13 @@
   <meta charset="UTF-8">
   <title>وصل التحضير</title>
   <style>
+    @page {
+      size: 80mm 297mm;
+      margin: 0;
+    }
     body {
-      width: 72mm;
+      width: 80mm;
+      height: 297mm;
       margin: 0;
       padding: 0;
       font-family: 'Arial', sans-serif;
@@ -14,6 +19,10 @@
     .receipt {
       padding: 5px;
       text-align: center;
+      height: 100%;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
     }
     h2 {
       margin: 5px 0;
@@ -49,11 +58,12 @@
       text-align: center;
     }
     .qrcode-section img {
-      width: 60px;  /* زيادة حجم الرموز من 40px إلى 60px */
-      height: 60px; /* زيادة حجم الرموز من 40px إلى 60px */
+      width: 60px;
+      height: 60px;
     }
     .footer {
-      margin-top: 5px;
+      margin-top: auto;
+      padding-bottom: 10px;
       font-size: 12px;
     }
     .separator {
@@ -115,6 +125,12 @@
       .no-print {
         display: none !important;
       }
+      .hide-on-print {
+        display: none !important;
+      }
+      body {
+        height: auto;
+      }
     }
   </style>
 </head>
@@ -128,7 +144,7 @@
     <p><strong>الهاتف:</strong> <input type="text" id="phoneInput" placeholder="ادخل رقم الهاتف"></p>
     <p><strong>المنطقة:</strong> <input type="text" id="areaInput" placeholder="ادخل المنطقة"></p>
     <p><strong>وقت التوصيل:</strong> <input type="text" id="timeInput" placeholder="ادخل وقت التوصيل"></p>
-    <p><strong>اللوكيشن:</strong> <input type="text" id="locationInput" placeholder="رابط اللوكيشن"></p>
+    <p class="hide-on-print"><strong>اللوكيشن:</strong> <input type="text" id="locationInput" placeholder="رابط اللوكيشن"></p>
   </div>
 
   <div class="separator"></div>
@@ -159,7 +175,7 @@
   </div>
 
   <div class="footer">
-    <p id="dateTime">تاريخ الوصول: 2025/04/28 - 02:34 صباحًا</p>
+    <p id="dateTime">تاريخ الوصول: 2025/04/28 - 02:34</p>
   </div>
 
   <div class="action-buttons no-print">
@@ -202,7 +218,7 @@
     }
   }
   
-  // تحديث التاريخ والوقت
+  // تحديث التاريخ والوقت بنظام 24 ساعة
   function updateDateTime() {
     const now = new Date();
     const options = { 
@@ -211,7 +227,7 @@
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: false // استخدام نظام 24 ساعة
     };
     const formatter = new Intl.DateTimeFormat('ar-EG', options);
     const parts = formatter.formatToParts(now);
@@ -223,7 +239,7 @@
       if (part.type === 'year') formattedDate += part.value;
       if (part.type === 'hour') formattedDate += ' - ' + part.value + ':';
       if (part.type === 'minute') formattedDate += part.value;
-      if (part.type === 'dayPeriod') formattedDate += ' ' + (part.value === 'AM' ? 'صباحًا' : 'مساءً');
+      // تم إزالة جزء صباحًا/مساءً لاستخدام نظام 24 ساعة
     }
     
     document.getElementById('dateTime').textContent = `تاريخ الوصول: ${formattedDate}`;
