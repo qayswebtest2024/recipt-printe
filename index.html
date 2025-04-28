@@ -54,15 +54,18 @@
     .notes-row td {
       padding: 2px 4px;
       border-top: none;
+      background-color: #f9f9f9;
     }
     .notes-input {
       width: 100%;
-      border: none;
-      border-bottom: 1px dashed #000;
+      border: 1px dashed #999;
       font-size: 12px;
-      padding: 2px;
+      padding: 4px;
       text-align: right;
       box-sizing: border-box;
+      min-height: 20px;
+      resize: vertical;
+      background-color: transparent;
     }
     .add-notes-btn {
       background: none;
@@ -73,6 +76,9 @@
       padding: 0;
       margin-top: 2px;
       float: left;
+    }
+    .product-row {
+      position: relative;
     }
     .qrcodes {
       display: flex;
@@ -163,6 +169,10 @@
       .notes-row {
         display: table-row !important;
       }
+      .notes-input {
+        border: none;
+        background-color: transparent;
+      }
     }
   </style>
 </head>
@@ -218,7 +228,7 @@
 </div>
 
 <script>
-  // إضافة منتج جديد إلى الجدول مع ملاحظات
+  // إضافة منتج جديد إلى الجدول مع ملاحظات ديناميكية
   function addProductRow() {
     const tbody = document.getElementById('orderItems');
     
@@ -237,15 +247,43 @@
     const notesRow = document.createElement('tr');
     notesRow.className = 'notes-row';
     notesRow.innerHTML = `
-      <td colspan="2"><input class="notes-input" type="text" placeholder="اكتب ملاحظات هنا..."></td>
+      <td colspan="2">
+        <textarea class="notes-input" placeholder="اكتب ملاحظات هنا..." rows="1"></textarea>
+      </td>
     `;
     
     tbody.appendChild(productRow);
     tbody.appendChild(notesRow);
     
     // إضافة حدث لزر الملاحظات
-    productRow.querySelector('.add-notes-btn').addEventListener('click', function() {
+    const notesBtn = productRow.querySelector('.add-notes-btn');
+    const notesInput = notesRow.querySelector('.notes-input');
+    
+    notesBtn.addEventListener('click', function() {
       notesRow.style.display = notesRow.style.display === 'none' ? 'table-row' : 'none';
+      if (notesRow.style.display === 'table-row') {
+        notesInput.focus();
+      }
+    });
+    
+    // جعل الملاحظات ديناميكية مع المحتوى
+    notesInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+      
+      // تحديث ارتفاع الصف
+      notesRow.style.height = 'auto';
+      const newHeight = Math.max(20, this.scrollHeight + 8);
+      notesRow.style.height = newHeight + 'px';
+    });
+    
+    // إظهار الملاحظات إذا كانت تحتوي على محتوى عند الطباعة
+    notesInput.addEventListener('change', function() {
+      if (this.value.trim() !== '') {
+        notesRow.dataset.hasContent = 'true';
+      } else {
+        notesRow.removeAttribute('data-has-content');
+      }
     });
   }
   
@@ -306,6 +344,12 @@
   
   // زر الطباعة
   document.getElementById('printBtn').addEventListener('click', function() {
+    // إظهار جميع صفوف الملاحظات التي تحتوي على محتوى قبل الطباعة
+    document.querySelectorAll('.notes-row').forEach(row => {
+      if (row.dataset.hasContent === 'true') {
+        row.style.display = 'table-row';
+      }
+    });
     window.print();
   });
   
