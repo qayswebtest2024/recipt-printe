@@ -48,6 +48,32 @@
     .product-column {
       width: 80%;
     }
+    .notes-row {
+      display: none;
+    }
+    .notes-row td {
+      padding: 2px 4px;
+      border-top: none;
+    }
+    .notes-input {
+      width: 100%;
+      border: none;
+      border-bottom: 1px dashed #000;
+      font-size: 12px;
+      padding: 2px;
+      text-align: right;
+      box-sizing: border-box;
+    }
+    .add-notes-btn {
+      background: none;
+      border: none;
+      color: #0066cc;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 0;
+      margin-top: 2px;
+      float: left;
+    }
     .qrcodes {
       display: flex;
       justify-content: space-around;
@@ -131,6 +157,12 @@
       body {
         height: auto;
       }
+      .add-notes-btn {
+        display: none;
+      }
+      .notes-row {
+        display: table-row !important;
+      }
     }
   </style>
 </head>
@@ -157,7 +189,7 @@
       </tr>
     </thead>
     <tbody id="orderItems">
-      <!-- سيتم إضافة صف واحد افتراضي هنا -->
+      <!-- سيتم إضافة الصفوف ديناميكيًا هنا -->
     </tbody>
   </table>
 
@@ -186,17 +218,35 @@
 </div>
 
 <script>
-  // إضافة منتج جديد إلى الجدول
+  // إضافة منتج جديد إلى الجدول مع ملاحظات
   function addProductRow() {
     const tbody = document.getElementById('orderItems');
-    const newRow = document.createElement('tr');
     
-    newRow.innerHTML = `
-      <td><input class="product-input" type="text" placeholder="اسم المنتج"></td>
+    // صف المنتج
+    const productRow = document.createElement('tr');
+    productRow.className = 'product-row';
+    productRow.innerHTML = `
+      <td>
+        <input class="product-input" type="text" placeholder="اسم المنتج">
+        <button class="add-notes-btn no-print">+ إضافة ملاحظات</button>
+      </td>
       <td><input class="quantity-input" type="text" placeholder="الكمية"></td>
     `;
     
-    tbody.appendChild(newRow);
+    // صف الملاحظات
+    const notesRow = document.createElement('tr');
+    notesRow.className = 'notes-row';
+    notesRow.innerHTML = `
+      <td colspan="2"><input class="notes-input" type="text" placeholder="اكتب ملاحظات هنا..."></td>
+    `;
+    
+    tbody.appendChild(productRow);
+    tbody.appendChild(notesRow);
+    
+    // إضافة حدث لزر الملاحظات
+    productRow.querySelector('.add-notes-btn').addEventListener('click', function() {
+      notesRow.style.display = notesRow.style.display === 'none' ? 'table-row' : 'none';
+    });
   }
   
   // تحديث QR code عند تغيير القيم
@@ -227,7 +277,7 @@
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false // استخدام نظام 24 ساعة
+      hour12: false
     };
     const formatter = new Intl.DateTimeFormat('ar-EG', options);
     const parts = formatter.formatToParts(now);
@@ -239,7 +289,6 @@
       if (part.type === 'year') formattedDate += part.value;
       if (part.type === 'hour') formattedDate += ' - ' + part.value + ':';
       if (part.type === 'minute') formattedDate += part.value;
-      // تم إزالة جزء صباحًا/مساءً لاستخدام نظام 24 ساعة
     }
     
     document.getElementById('dateTime').textContent = `تاريخ الوصول: ${formattedDate}`;
