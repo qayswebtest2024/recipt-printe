@@ -101,6 +101,15 @@
       padding: 2px;
       text-align: center;
     }
+    .note-input {
+      width: 100%;
+      border: none;
+      font-size: 14px;
+      font-weight: normal; /* مطابق لسمك خط اسم المنتج */
+      padding: 4px;
+      text-align: right;
+      box-sizing: border-box;
+    }
     .action-buttons {
       margin-top: 10px;
       display: flex;
@@ -120,7 +129,6 @@
       font-size: 12px;
       cursor: pointer;
     }
-    
     @media print {
       .no-print {
         display: none !important;
@@ -146,6 +154,21 @@
       localStorage.removeItem('isAuthenticated');
       window.location.href = "index.html";
     }
+
+    // قبل الطباعة: إخفاء صفوف الملاحظات الفارغة
+    window.addEventListener('beforeprint', () => {
+      document.querySelectorAll('.note-input').forEach(input => {
+        if (!input.value.trim()) {
+          input.closest('tr').style.display = 'none';
+        }
+      });
+    });
+    // بعد الطباعة: إظهار جميع الصفوف مجددًا
+    window.addEventListener('afterprint', () => {
+      document.querySelectorAll('.note-input').forEach(input => {
+        input.closest('tr').style.display = '';
+      });
+    });
   </script>
 <div class="receipt">
   <h2>وصل التحضير</h2>
@@ -198,17 +221,23 @@
 </div>
 
 <script>
-  // إضافة منتج جديد إلى الجدول
+  // إضافة منتج جديد إلى الجدول مع خانة الملاحظات
   function addProductRow() {
     const tbody = document.getElementById('orderItems');
-    const newRow = document.createElement('tr');
-    
-    newRow.innerHTML = `
+
+    const productRow = document.createElement('tr');
+    productRow.innerHTML = `
       <td><input class="product-input" type="text" placeholder="اسم المنتج"></td>
       <td><input class="quantity-input" type="text" placeholder="الكمية"></td>
     `;
-    
-    tbody.appendChild(newRow);
+
+    const noteRow = document.createElement('tr');
+    noteRow.innerHTML = `
+      <td colspan="2"><input class="note-input" type="text" placeholder="ملاحظات"></td>
+    `;
+
+    tbody.appendChild(productRow);
+    tbody.appendChild(noteRow);
   }
   
   // تحديث QR code عند تغيير القيم
@@ -239,7 +268,7 @@
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false // استخدام نظام 24 ساعة
+      hour12: false
     };
     const formatter = new Intl.DateTimeFormat('ar-EG', options);
     const parts = formatter.formatToParts(now);
@@ -251,7 +280,6 @@
       if (part.type === 'year') formattedDate += part.value;
       if (part.type === 'hour') formattedDate += ' - ' + part.value + ':';
       if (part.type === 'minute') formattedDate += part.value;
-      // تم إزالة جزء صباحًا/مساءً لاستخدام نظام 24 ساعة
     }
     
     document.getElementById('dateTime').textContent = `تاريخ الوصول: ${formattedDate}`;
@@ -277,7 +305,7 @@
   
   // إضافة صف واحد فقط عند تحميل الصفحة
   window.addEventListener('DOMContentLoaded', () => {
-    addProductRow(); // صف واحد فقط عند البدء
+    addProductRow();
     updateDateTime();
   });
 </script>
