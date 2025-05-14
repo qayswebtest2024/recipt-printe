@@ -4,6 +4,57 @@
   <meta charset="UTF-8">
   <title>وصل التحضير</title>
   <style>
+    /* أنماط الآلة الحاسبة الجديدة */
+    .calculator-container {
+      position: fixed;
+      left: 10px;
+      top: 10px;
+      width: 200px;
+      background: #f5f5f5;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      z-index: 999;
+    }
+    
+    .calculator {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3px;
+    }
+    
+    .calculator-display {
+      grid-column: span 4;
+      padding: 8px;
+      text-align: left;
+      border: 1px solid #ccc;
+      margin-bottom: 5px;
+      background: white;
+      direction: ltr;
+    }
+    
+    .calculator-btn {
+      padding: 8px;
+      border: 1px solid #ccc;
+      background: white;
+      cursor: pointer;
+    }
+    
+    .calculator-btn:hover {
+      background: #eee;
+    }
+    
+    .equals-btn {
+      background: #4CAF50;
+      color: white;
+    }
+    
+    .clear-btn {
+      background: #f44336;
+      color: white;
+    }
+
+    /* الأنماط الأصلية بدون تعديل */
     @page {
       size: 80mm 297mm;
       margin: 0;
@@ -105,7 +156,7 @@
       width: 100%;
       border: none;
       font-size: 14px;
-      font-weight: normal; /* مطابق لسمك خط اسم المنتج */
+      font-weight: normal;
       padding: 4px;
       text-align: right;
       box-sizing: border-box;
@@ -139,37 +190,41 @@
       body {
         height: auto;
       }
+      .calculator-container {
+        display: none !important;
+      }
     }
   </style>
 </head>
 <body>
-  <script>
-    // التحقق من تسجيل الدخول قبل عرض الصفحة
-    if (localStorage.getItem('isAuthenticated') !== 'true') {
-      window.location.href = "recipt.html";
-    }
-    
-    // زر تسجيل الخروج (اختياري)
-    function logout() {
-      localStorage.removeItem('isAuthenticated');
-      window.location.href = "index.html";
-    }
 
-    // قبل الطباعة: إخفاء صفوف الملاحظات الفارغة
-    window.addEventListener('beforeprint', () => {
-      document.querySelectorAll('.note-input').forEach(input => {
-        if (!input.value.trim()) {
-          input.closest('tr').style.display = 'none';
-        }
-      });
-    });
-    // بعد الطباعة: إظهار جميع الصفوف مجددًا
-    window.addEventListener('afterprint', () => {
-      document.querySelectorAll('.note-input').forEach(input => {
-        input.closest('tr').style.display = '';
-      });
-    });
-  </script>
+<!-- الآلة الحاسبة الجديدة -->
+<div class="calculator-container no-print">
+  <div class="calculator">
+    <input type="text" class="calculator-display" id="calcDisplay" readonly>
+    <button class="calculator-btn clear-btn" onclick="clearDisplay()">C</button>
+    <button class="calculator-btn" onclick="appendToDisplay('(')">(</button>
+    <button class="calculator-btn" onclick="appendToDisplay(')')">)</button>
+    <button class="calculator-btn" onclick="appendToDisplay('/')">/</button>
+    <button class="calculator-btn" onclick="appendToDisplay('7')">7</button>
+    <button class="calculator-btn" onclick="appendToDisplay('8')">8</button>
+    <button class="calculator-btn" onclick="appendToDisplay('9')">9</button>
+    <button class="calculator-btn" onclick="appendToDisplay('*')">×</button>
+    <button class="calculator-btn" onclick="appendToDisplay('4')">4</button>
+    <button class="calculator-btn" onclick="appendToDisplay('5')">5</button>
+    <button class="calculator-btn" onclick="appendToDisplay('6')">6</button>
+    <button class="calculator-btn" onclick="appendToDisplay('-')">-</button>
+    <button class="calculator-btn" onclick="appendToDisplay('1')">1</button>
+    <button class="calculator-btn" onclick="appendToDisplay('2')">2</button>
+    <button class="calculator-btn" onclick="appendToDisplay('3')">3</button>
+    <button class="calculator-btn" onclick="appendToDisplay('+')">+</button>
+    <button class="calculator-btn" onclick="appendToDisplay('0')">0</button>
+    <button class="calculator-btn" onclick="appendToDisplay('.')">.</button>
+    <button class="calculator-btn equals-btn" onclick="calculate()" style="grid-column: span 2">=</button>
+  </div>
+</div>
+
+<!-- المحتوى الأصلي -->
 <div class="receipt">
   <h2>وصل التحضير</h2>
 
@@ -191,7 +246,6 @@
       </tr>
     </thead>
     <tbody id="orderItems">
-      <!-- سيتم إضافة صف واحد افتراضي هنا -->
     </tbody>
   </table>
 
@@ -217,30 +271,71 @@
     <button id="printBtn">طباعة الوصل</button>
     <button onclick="logout()" class="no-print">تسجيل الخروج</button>
   </div>
-
 </div>
 
+<!-- سكريبت الآلة الحاسبة -->
 <script>
-  // إضافة منتج جديد إلى الجدول مع خانة الملاحظات
+  // دوال الآلة الحاسبة
+  function appendToDisplay(value) {
+    document.getElementById('calcDisplay').value += value;
+  }
+  
+  function clearDisplay() {
+    document.getElementById('calcDisplay').value = '';
+  }
+  
+  function calculate() {
+    try {
+      document.getElementById('calcDisplay').value = eval(
+        document.getElementById('calcDisplay').value
+      );
+    } catch (error) {
+      document.getElementById('calcDisplay').value = 'خطأ';
+    }
+  }
+</script>
+
+<!-- السكريبتات الأصلية -->
+<script>
+  // التحقق من تسجيل الدخول
+  if (localStorage.getItem('isAuthenticated') !== 'true') {
+    window.location.href = "recipt.html";
+  }
+  
+  function logout() {
+    localStorage.removeItem('isAuthenticated');
+    window.location.href = "index.html";
+  }
+
+  window.addEventListener('beforeprint', () => {
+    document.querySelectorAll('.note-input').forEach(input => {
+      if (!input.value.trim()) {
+        input.closest('tr').style.display = 'none';
+      }
+    });
+  });
+  
+  window.addEventListener('afterprint', () => {
+    document.querySelectorAll('.note-input').forEach(input => {
+      input.closest('tr').style.display = '';
+    });
+  });
+
   function addProductRow() {
     const tbody = document.getElementById('orderItems');
-
     const productRow = document.createElement('tr');
     productRow.innerHTML = `
       <td><input class="product-input" type="text" placeholder="اسم المنتج"></td>
       <td><input class="quantity-input" type="text" placeholder="الكمية"></td>
     `;
-
     const noteRow = document.createElement('tr');
     noteRow.innerHTML = `
       <td colspan="2"><input class="note-input" type="text" placeholder="ملاحظات"></td>
     `;
-
     tbody.appendChild(productRow);
     tbody.appendChild(noteRow);
   }
-  
-  // تحديث QR code عند تغيير القيم
+
   document.getElementById('phoneInput').addEventListener('input', updateQRs);
   document.getElementById('locationInput').addEventListener('input', updateQRs);
   
@@ -259,7 +354,6 @@
     }
   }
   
-  // تحديث التاريخ والوقت بنظام 24 ساعة
   function updateDateTime() {
     const now = new Date();
     const options = { 
@@ -285,7 +379,6 @@
     document.getElementById('dateTime').textContent = `تاريخ الوصول: ${formattedDate}`;
   }
   
-  // زر النسخ
   document.getElementById('copyBtn').addEventListener('click', function() {
     const receiptContent = document.querySelector('.receipt').innerText;
     navigator.clipboard.writeText(receiptContent).then(() => {
@@ -295,15 +388,12 @@
     });
   });
   
-  // زر الطباعة
   document.getElementById('printBtn').addEventListener('click', function() {
     window.print();
   });
   
-  // زر إضافة منتج جديد
   document.getElementById('addProductBtn').addEventListener('click', addProductRow);
   
-  // إضافة صف واحد فقط عند تحميل الصفحة
   window.addEventListener('DOMContentLoaded', () => {
     addProductRow();
     updateDateTime();
